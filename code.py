@@ -70,10 +70,11 @@ class BitmapKeyboard(Keyboard):
 kbd = BitmapKeyboard(usb_hid.devices)
 
 keymap = [
-    Keycode.ONE, Keycode.TWO, Keycode.THREE,
-    Keycode.Q, Keycode.W, Keycode.E,
-    Keycode.A, Keycode.S, Keycode.D,
-    Keycode.Z, Keycode.X, Keycode.C]
+    Keycode.W, Keycode.A, Keycode.S, Keycode.D,
+    Keycode.J, Keycode.U, Keycode.I, Keycode.O, Keycode.L,
+    Keycode.Q,
+    Keycode.SPACE, Keycode.ENTER
+]
 
 while True:
     ev = keys.events.get()
