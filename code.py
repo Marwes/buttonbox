@@ -79,9 +79,9 @@ keymap = [
     # Options
     Keycode.SPACE, Keycode.ENTER,
     # Attack buttons
-    Keycode.J, Keycode.U, Keycode.Q, Keycode.I, Keycode.L, Keycode.O,
+    Keycode.J, Keycode.U, Keycode.K, Keycode.I, Keycode.L, Keycode.O,
     # Extra
-    Keycode.ESCAPE, Keycode.TAB,
+    Keycode.P, Keycode.QUOTE,
 ]
 keymap.reverse()
 
