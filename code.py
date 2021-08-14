@@ -70,15 +70,36 @@ class BitmapKeyboard(Keyboard):
 kbd = BitmapKeyboard(usb_hid.devices)
 
 keymap = [
-    Keycode.W, Keycode.A, Keycode.S, Keycode.D,
-    Keycode.J, Keycode.U, Keycode.I, Keycode.O, Keycode.L,
-    Keycode.Q,
-    Keycode.SPACE, Keycode.ENTER
+    # Unused
+    Keycode.P, Keycode.M,
+    # Movement
+    Keycode.A, Keycode.S, Keycode.D,
+    # Jump
+    Keycode.W,
+    # Options
+    Keycode.SPACE, Keycode.ENTER,
+    # Attack buttons
+    Keycode.J, Keycode.U, Keycode.Q, Keycode.I, Keycode.L, Keycode.O,
+    # Extra
+    Keycode.ESCAPE, Keycode.TAB,
 ]
+keymap.reverse()
+
+# keymap = [
+#     Keycode.TAB, Keycode.ESCAPE,
+#     Keycode.ENTER, Keycode.SPACE,
+#     Keycode.Q,
+#     Keycode.M, Keycode.P,
+#     Keycode.L, Keycode.O, Keycode.I, Keycode.U, Keycode.J,
+#     Keycode.D, Keycode.S, Keycode.A, Keycode.W,
+# ]
 
 while True:
     ev = keys.events.get()
     if ev is not None:
+        if ev.key_number >= len(keymap):
+            print("Key", ev.key_number, "is not mapped")
+            continue
         key = keymap[ev.key_number]
         if ev.pressed:
             kbd.press(key)
