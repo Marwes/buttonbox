@@ -1,57 +1,43 @@
 import usb_hid
 
-BITMAP_KEYBOARD_DESCRIPTOR_REPORT_ID = 7
-REPORT_BYTES = 16
-bitmap_keyboard_descriptor = bytes((
-        0x05, 0x01,                     # Usage Page (Generic Desktop),
-        0x09, 0x06,                     # Usage (Keyboard),
-        0xA1, 0x01,                     # Collection (Application),
-        0x85, 0xFF,                     #   6,7 Report ID  [SET AT RUNTIME]
-        # bitmap of modifiers
-        0x75, 0x01,                     #   Report Size (1),
-        0x95, 0x08,                     #   Report Count (8),
-        0x05, 0x07,                     #   Usage Page (Key Codes),
-        0x19, 0xE0,                     #   Usage Minimum (224),
-        0x29, 0xE7,                     #   Usage Maximum (231),
-        0x15, 0x00,                     #   Logical Minimum (0),
-        0x25, 0x01,                     #   Logical Maximum (1),
-        0x81, 0x02,                     #   Input (Data, Variable, Absolute), ;Modifier byte
-        # LED output report
-        0x95, 0x05,                     #   Report Count (5),
-        0x75, 0x01,                     #   Report Size (1),
-        0x05, 0x08,                     #   Usage Page (LEDs),
-        0x19, 0x01,                     #   Usage Minimum (1),
-        0x29, 0x05,                     #   Usage Maximum (5),
-        0x91, 0x02,                     #   Output (Data, Variable, Absolute),
-        0x95, 0x01,                     #   Report Count (1),
-        0x75, 0x03,                     #   Report Size (3),
-        0x91, 0x03,                     #   Output (Constant),
-        # bitmap of keys
-        0x95, (REPORT_BYTES-1)*8,       #   Report Count (),
-        0x75, 0x01,                     #   Report Size (1),
-        0x15, 0x00,                     #   Logical Minimum (0),
-        0x25, 0x01,                     #   Logical Maximum(1),
-        0x05, 0x07,                     #   Usage Page (Key Codes),
-        0x19, 0x00,                     #   Usage Minimum (0),
-        0x29, (REPORT_BYTES-1)*8-1,     #   Usage Maximum (),
-        0x81, 0x02,                     #   Input (Data, Variable, Absolute),
-        0xc0                            # End Collection
+# This is only one example of a gamepad descriptor, and may not suit your needs.
+GAMEPAD_REPORT_DESCRIPTOR = bytes((
+    0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
+    0x09, 0x05,  # Usage (Game Pad)
+    0xA1, 0x01,  # Collection (Application)
+    0x85, 0x01,  # Report ID (will be replaced at runtime)
+    0x05, 0x09,  # Usage Page (Button)
+    0x19, 0x01,  # Usage Minimum (Button 1)
+    0x29, 0x10,  # Usage Maximum (Button 16)
+    0x15, 0x00,  # Logical Minimum (0)
+    0x25, 0x01,  # Logical Maximum (1)
+    0x75, 0x01,  # Report Size (1)
+    0x95, 0x10,  # Report Count (16)
+    # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x81, 0x02,
+    0x05, 0x01,  # Usage Page (Generic Desktop Ctrls)
+    0x15, 0x81,  # Logical Minimum (-127)
+    0x25, 0x7F,  # Logical Maximum (127)
+    0x09, 0x30,  # Usage (X)
+    0x09, 0x31,  # Usage (Y)
+    0x09, 0x32,  # Usage (Z)
+    0x09, 0x35,  # Usage (Rz)
+    0x75, 0x08,  # Report Size (8)
+    0x95, 0x04,  # Report Count (4)
+    # Input (Data,Var,Abs,No Wrap,Linear,Preferred State,No Null Position)
+    0x81, 0x02,
+    0xC0,        # End Collection
 ))
 
-bitmap_keyboard = usb_hid.Device(
-    report_descriptor = bitmap_keyboard_descriptor,
-    usage_page = 0x1,
-    usage = 0x6,
-    in_report_length = 16,
-    out_report_length = 1,
-    report_id_index = BITMAP_KEYBOARD_DESCRIPTOR_REPORT_ID,
+gamepad = usb_hid.Device(
+    report_descriptor=GAMEPAD_REPORT_DESCRIPTOR,
+    usage_page=0x01,           # Generic Desktop Control
+    usage=0x05,                # Gamepad
+    in_report_length=6,        # This gamepad sends 6 bytes in its report.
+    out_report_length=0,       # It does not receive any reports.
+    report_id_index=7,         # The report id is at byte 7 (counting from 0)
+                               # in the report descriptor.
 )
 
-print(bitmap_keyboard)
-devices = [
-    bitmap_keyboard,
-    usb_hid.Device.CONSUMER_CONTROL,
-    usb_hid.Device.MOUSE,
-]
-usb_hid.enable(devices)
-print("enabled HID with custom keyboard device") 
+usb_hid.enable((gamepad,))
+print("enabled HID with custom gamepad device")

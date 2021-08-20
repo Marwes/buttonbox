@@ -1,11 +1,10 @@
-import keypad
 import board
 import usb_hid
+import digitalio
 import time
-from adafruit_hid.keyboard import Keyboard, find_device
-from adafruit_hid.keycode import Keycode
+from gamepad import Gamepad
 
-key_pins = (
+button_pins = (
     board.GP0,
     board.GP1,
     board.GP2,
@@ -24,84 +23,38 @@ key_pins = (
     board.GP15,
 )
 
-keys = keypad.Keys(key_pins, value_when_pressed=False, pull=True)
+buttons = [digitalio.DigitalInOut(pin) for pin in button_pins]
+for button in buttons:
+    button.direction = digitalio.Direction.INPUT
+    button.pull = digitalio.Pull.UP
 
+gamepad = Gamepad(usb_hid.devices)
 
-class BitmapKeyboard(Keyboard):
-    def __init__(self, devices):
-        device = find_device(devices, usage_page=0x1, usage=0x6)
-
-        try:
-            device.send_report(b'\0' * 16)
-        except ValueError:
-            print("found keyboard, but it did not accept a 16-byte report. check that boot.py is installed properly")
-
-        self._keyboard_device = device
-
-        # report[0] modifiers
-        # report[1:16] regular key presses bitmask
-        self.report = bytearray(16)
-
-        self.report_modifier = memoryview(self.report)[0:1]
-        self.report_bitmap = memoryview(self.report)[1:]
-
-    def _add_keycode_to_report(self, keycode):
-        modifier = Keycode.modifier_bit(keycode)
-        if modifier:
-            # Set bit for this modifier.
-            self.report_modifier[0] |= modifier
-        else:
-            self.report_bitmap[keycode >> 3] |= 1 << (keycode & 0x7)
-
-    def _remove_keycode_from_report(self, keycode):
-        modifier = Keycode.modifier_bit(keycode)
-        if modifier:
-            # Set bit for this modifier.
-            self.report_modifier[0] &= ~modifier
-        else:
-            self.report_bitmap[keycode >> 3] &= ~(1 << (keycode & 0x7))
-
-    def release_all(self):
-        for i in range(len(self.report)):
-            self.report[i] = 0
-        self._keyboard_device.send_report(self.report)
-
-
-kbd = BitmapKeyboard(usb_hid.devices)
-
-keymap = [
+gamepad_buttons = [
     # Unused
-    Keycode.P, Keycode.M,
+    1, 2,
     # Movement
-    Keycode.A, Keycode.S, Keycode.D,
+    3, 4, 5,
     # Jump
-    Keycode.W,
+    6,
     # Options
-    Keycode.SPACE, Keycode.ENTER,
+    7, 8,
     # Attack buttons
-    Keycode.J, Keycode.U, Keycode.K, Keycode.I, Keycode.L, Keycode.O,
+    9, 10, 11, 12, 13, 14,
     # Extra
-    Keycode.P, Keycode.QUOTE,
+    15, 16
 ]
-keymap.reverse()
 
-# keymap = [
-#     Keycode.TAB, Keycode.ESCAPE,
-#     Keycode.ENTER, Keycode.SPACE,
-#     Keycode.Q,
-#     Keycode.M, Keycode.P,
-#     Keycode.L, Keycode.O, Keycode.I, Keycode.U, Keycode.J,
-#     Keycode.D, Keycode.S, Keycode.A, Keycode.W,
-# ]
+button_states = [False for x in gamepad_buttons]
 
 while True:
-    ev = keys.events.get()
-    if ev is not None:
-        if ev.key_number >= len(keymap):
-            print("Key", ev.key_number, "is not mapped")
-            continue
-        key = keymap[ev.key_number]
-        if ev.pressed:
-            kbd.press(key)
-        else:
-            kbd.release(key)
+    # Buttons are grounded when pressed (.value = False).
+    for i, button in enumerate(buttons):
+        gamepad_button_num = gamepad_buttons[i]
+        if button.value and button_states[i]:
+            button_states[i] = False
+            gamepad.release_buttons(gamepad_button_num)
+        elif not button.value and not button_states[i]:
+            button_states[i] = True
+            gamepad.press_buttons(gamepad_button_num)
+    time.sleep(0.001)
