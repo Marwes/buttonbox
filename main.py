@@ -49,12 +49,13 @@ button_states = [False for x in gamepad_buttons]
 def is_movement(gamepad_button_num):
     return 11 <= gamepad_button_num <= 14
 
+USE_DPAD = True
 
 while True:
     # Buttons are grounded when pressed (.value = False).
     for i, button in enumerate(buttons):
         gamepad_button_num = gamepad_buttons[i]
-        if is_movement(gamepad_button_num):
+        if not USE_DPAD and is_movement(gamepad_button_num):
             continue
         if button.value and button_states[i]:
             button_states[i] = False
@@ -63,32 +64,33 @@ while True:
             button_states[i] = True
             gamepad.press_buttons(gamepad_button_num)
 
-    LEFT = 13
-    RIGHT = 11
-    UP = 10
-    DOWN = 12
-    x = None
-    y = None
-    # SOCD cleaner
-    # print(not buttons[LEFT].value, not buttons[RIGHT].value,
-    #      not buttons[UP].value, not buttons[DOWN].value)
-    if not buttons[LEFT].value:
-        if not buttons[RIGHT].value:
-            x = 0
+    if not USE_DPAD:
+        LEFT = 13
+        RIGHT = 11
+        UP = 10
+        DOWN = 12
+        x = None
+        y = None
+        # SOCD cleaner
+        # print(not buttons[LEFT].value, not buttons[RIGHT].value,
+        #      not buttons[UP].value, not buttons[DOWN].value)
+        if not buttons[LEFT].value:
+            if not buttons[RIGHT].value:
+                x = 0
+            else:
+                x = -127
+        elif not buttons[RIGHT].value:
+            x = 127
         else:
-            x = -127
-    elif not buttons[RIGHT].value:
-        x = 127
-    else:
-        x = 0
+            x = 0
 
-    if not buttons[UP].value:
-        y = -127
-    elif not buttons[DOWN].value:
-        y = 127
-    else:
-        y = 0
+        if not buttons[UP].value:
+            y = -127
+        elif not buttons[DOWN].value:
+            y = 127
+        else:
+            y = 0
 
-    gamepad.move_joysticks(x, y)
+        gamepad.move_joysticks(x, y)
 
     time.sleep(0.001)
